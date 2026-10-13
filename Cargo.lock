@@ -40,6 +40,16 @@ dependencies = [
 ]
 
 [[package]]
+name = "nexora-engine"
+version = "0.1.0"
+dependencies = [
+ "nexora-core",
+ "nexora-input",
+ "nexora-vision",
+ "nexora-voice",
+]
+
+[[package]]
 name = "nexora-input"
 version = "0.1.0"
 dependencies = [

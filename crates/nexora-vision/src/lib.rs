@@ -4,7 +4,9 @@
 //! -> filtre One-Euro -> classifieur de geste (règles, puis MLP ONNX).
 //! Cette version contient les types et le classifieur à règles, testables sans caméra.
 
-use nexora_core::Gesture;
+use std::collections::VecDeque;
+
+use nexora_core::{Event, Gesture};
 
 /// Les 21 points de la main (convention MediaPipe), coordonnées normalisées 0..1.
 pub type Landmarks = [[f32; 3]; 21];
@@ -69,12 +71,84 @@ pub fn classify(l: &Landmarks) -> Option<Gesture> {
     }
 }
 
-#[cfg(test)]
-mod tests {
-    use super::*;
+/// Transforme les gestes bruts (un par frame) en événements `Start`/`End` stables.
+/// Un geste n'est validé qu'après `threshold` frames consécutives identiques (debounce).
+pub struct GestureTracker {
+    threshold: usize,
+    current: Option<Gesture>,
+    candidate: Option<Gesture>,
+    count: usize,
+}
+
+impl GestureTracker {
+    pub fn new(threshold: usize) -> Self {
+        Self {
+            threshold: threshold.max(1),
+            current: None,
+            candidate: None,
+            count: 0,
+        }
+    }
+
+    /// Geste actuellement validé (stable).
+    pub fn current(&self) -> Option<Gesture> {
+        self.current
+    }
+
+    pub fn update(&mut self, raw: Option<Gesture>) -> Vec<Event> {
+        if raw == self.candidate {
+            self.count += 1;
+        } else {
+            self.candidate = raw;
+            self.count = 1;
+        }
+        if self.count < self.threshold || self.candidate == self.current {
+            return Vec::new();
+        }
+        let mut events = Vec::new();
+        if let Some(old) = self.current {
+            events.push(Event::GestureEnd(old));
+        }
+        if let Some(new) = self.candidate {
+            events.push(Event::GestureStart(new));
+        }
+        self.current = self.candidate;
+        events
+    }
+}
+
+impl Default for GestureTracker {
+    fn default() -> Self {
+        Self::new(3)
+    }
+}
+
+/// Mock de caméra : rejoue une séquence de frames puis ne voit plus aucune main.
+pub struct ScriptedTracker {
+    frames: VecDeque<Option<Landmarks>>,
+}
+
+impl ScriptedTracker {
+    pub fn new(frames: impl IntoIterator<Item = Option<Landmarks>>) -> Self {
+        Self {
+            frames: frames.into_iter().collect(),
+        }
+    }
+}
+
+impl HandTracker for ScriptedTracker {
+    fn next(&mut self) -> Result<Option<Landmarks>, VisionError> {
+        Ok(self.frames.pop_front().flatten())
+    }
+}
+
+/// Mains synthétiques pour les tests et les simulations (sans caméra).
+pub mod synthetic {
+    use super::{idx, Landmarks};
 
     /// Main synthétique : poignet en (0.5, 0.9), doigts vers le haut.
-    fn hand(extended_fingers: [bool; 4]) -> Landmarks {
+    /// `extended_fingers` : index, majeur, annulaire, auriculaire.
+    pub fn hand(extended_fingers: [bool; 4]) -> Landmarks {
         let mut l = [[0.5, 0.9, 0.0]; 21];
         l[idx::WRIST] = [0.5, 0.9, 0.0];
         l[idx::THUMB_TIP] = [0.3, 0.7, 0.0];
@@ -94,6 +168,26 @@ mod tests {
         }
         l
     }
+
+    /// Index levé dont le bout est placé en (x, y) (image non miroir, 0..1).
+    pub fn pointing_at(x: f32, y: f32) -> Landmarks {
+        let mut l = hand([true, false, false, false]);
+        l[idx::INDEX_TIP] = [x, y, 0.0];
+        l
+    }
+
+    /// Pincement pouce-index.
+    pub fn pinch() -> Landmarks {
+        let mut l = hand([true, false, false, false]);
+        l[idx::THUMB_TIP] = [l[idx::INDEX_TIP][0] + 0.01, l[idx::INDEX_TIP][1], 0.0];
+        l
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::synthetic::{hand, pinch};
+    use super::*;
 
     #[test]
     fn recognises_basic_poses() {
@@ -117,8 +211,56 @@ mod tests {
 
     #[test]
     fn recognises_pinch() {
-        let mut l = hand([true, false, false, false]);
-        l[idx::THUMB_TIP] = [l[idx::INDEX_TIP][0] + 0.01, l[idx::INDEX_TIP][1], 0.0];
-        assert_eq!(classify(&l), Some(Gesture::PinchIndex));
+        assert_eq!(classify(&pinch()), Some(Gesture::PinchIndex));
+    }
+
+    #[test]
+    fn tracker_ignores_single_frame_noise() {
+        let mut t = GestureTracker::new(3);
+        let frames = [
+            Some(Gesture::Fist),
+            Some(Gesture::Fist),
+            Some(Gesture::Point),
+        ];
+        for g in frames {
+            assert!(t.update(g).is_empty());
+        }
+        assert_eq!(t.current(), None);
+    }
+
+    #[test]
+    fn tracker_emits_start_then_end() {
+        let mut t = GestureTracker::new(2);
+        assert!(t.update(Some(Gesture::Fist)).is_empty());
+        assert_eq!(
+            t.update(Some(Gesture::Fist)),
+            vec![Event::GestureStart(Gesture::Fist)]
+        );
+        // Stable : plus d'événement.
+        assert!(t.update(Some(Gesture::Fist)).is_empty());
+        assert!(t.update(None).is_empty());
+        assert_eq!(t.update(None), vec![Event::GestureEnd(Gesture::Fist)]);
+        assert_eq!(t.current(), None);
+    }
+
+    #[test]
+    fn tracker_chains_end_and_start_on_change() {
+        let mut t = GestureTracker::new(1);
+        t.update(Some(Gesture::Fist));
+        assert_eq!(
+            t.update(Some(Gesture::OpenPalm)),
+            vec![
+                Event::GestureEnd(Gesture::Fist),
+                Event::GestureStart(Gesture::OpenPalm)
+            ]
+        );
+    }
+
+    #[test]
+    fn scripted_tracker_replays_then_runs_dry() {
+        let mut t = ScriptedTracker::new([Some(hand([true; 4])), None]);
+        assert!(t.next().unwrap().is_some());
+        assert!(t.next().unwrap().is_none());
+        assert!(t.next().unwrap().is_none());
     }
 }
