@@ -1,0 +1,30 @@
+name: Fonctionnalité / tâche
+description: Une tâche à réaliser
+labels: ["feature"]
+body:
+  - type: textarea
+    id: objectif
+    attributes:
+      label: Objectif
+      description: Ce qu'il faut obtenir et pourquoi.
+    validations:
+      required: true
+  - type: textarea
+    id: criteres
+    attributes:
+      label: Critères d'acceptation
+      placeholder: "- [ ] ..."
+    validations:
+      required: true
+  - type: dropdown
+    id: zone
+    attributes:
+      label: Zone
+      options: [vision, voice, app, input, core, ml, infra, docs, marketing]
+    validations:
+      required: true
+  - type: input
+    id: seance
+    attributes:
+      label: Séance YDAYS visée
+      placeholder: "ex. YDAYS 4 (20/01/2027)"

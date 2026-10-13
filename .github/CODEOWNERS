@@ -1,0 +1,14 @@
+# Relecteurs proposés automatiquement. Remplacer @rsladky par les pseudos GitHub
+# des membres de chaque rôle (ou une équipe @org/team) quand ils auront rejoint le repo.
+# La dernière règle qui correspond l'emporte.
+
+*                          @rsladky
+/crates/nexora-core/       @rsladky
+/crates/nexora-vision/     @rsladky
+/crates/nexora-voice/      @rsladky
+/crates/nexora-input/      @rsladky
+/app/                      @rsladky
+/ml/                       @rsladky
+/.github/                  @rsladky
+/scripts/                  @rsladky
+/docs/                     @rsladky
