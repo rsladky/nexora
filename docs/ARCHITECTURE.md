@@ -11,7 +11,7 @@ Micro  ─► nexora-voice   ─ VoiceIntent ──┘
 ## Crates
 
 - **nexora-core** : `Gesture`, `VoiceIntent`, `Action`, `Event`, `Config` (TOML), `Mapper`. Aucun I/O : 100 % testable.
-- **nexora-vision** : trait `HandTracker` (caméra+ONNX ou mock), `classify()` à règles. À venir : `nokhwa`, `ort`, filtre One-Euro, MLP ONNX.
+- **nexora-vision** : trait `HandTracker` (caméra+ONNX ou mock), `classify()` à règles. Feature `camera` (désactivée par défaut) : capture webcam RGB (`v4l` sous Linux, `nokhwa` ailleurs), sonde `cargo run -p nexora-vision --features camera --example camera_probe`. À venir : `ort`, filtre One-Euro, MLP ONNX.
 - **nexora-voice** : trait `SpeechRecognizer`, `parse_intent()` FR. À venir : `cpal`, VAD, `whisper-rs`.
 - **nexora-engine** : `Engine<B: InputBackend>` relie `classify` + `GestureTracker` (debounce) + `parse_intent` + `Mapper` + backend. `on_frame()` / `on_transcript()`. Démo sans matériel : `cargo run -p nexora-engine --example simulate`.
 - **nexora-input** : trait `InputBackend`, `LogBackend`. À venir : backends `enigo` et `uinput` (features Cargo).
@@ -26,3 +26,7 @@ Micro  ─► nexora-voice   ─ VoiceIntent ──┘
 ## Flux Tauri (à implémenter)
 
 Commandes : `engine_start`, `engine_stop`, `config_get`, `config_set`. Événements : `nexora://status`, `nexora://gesture`, `nexora://voice`.
+
+## Caméra sur Asahi Linux (Mac Apple Silicon)
+
+La webcam est `/dev/video1` (driver `apple-isp`, NV12 uniquement) ; `/dev/video0` est le décodeur vidéo matériel `avd`, pas une caméra. `nokhwa` échoue sur ce pilote (intervalle de trames `256/7680` non réduit), d'où le backend `v4l` direct sous Linux. La sélection automatique ignore `avd`.
