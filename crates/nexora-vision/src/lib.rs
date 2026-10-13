@@ -4,6 +4,9 @@
 //! -> filtre One-Euro -> classifieur de geste (règles, puis MLP ONNX).
 //! Cette version contient les types et le classifieur à règles, testables sans caméra.
 
+#[cfg(feature = "camera")]
+pub mod camera;
+
 use std::collections::VecDeque;
 
 use nexora_core::{Event, Gesture};

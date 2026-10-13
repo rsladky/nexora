@@ -7,3 +7,17 @@ license.workspace = true
 [dependencies]
 nexora-core = { path = "../nexora-core" }
 thiserror.workspace = true
+
+[target.'cfg(target_os = "linux")'.dependencies]
+v4l = { version = "0.14", optional = true }
+
+[target.'cfg(not(target_os = "linux"))'.dependencies]
+nokhwa = { version = "0.10", features = ["input-native"], optional = true }
+
+[features]
+# Capture webcam réelle (nécessite les en-têtes système V4L sous Linux). Désactivée par défaut.
+camera = ["dep:v4l", "dep:nokhwa"]
+
+[[example]]
+name = "camera_probe"
+required-features = ["camera"]
