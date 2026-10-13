@@ -1,0 +1,9 @@
+[package]
+name = "nexora-vision"
+version.workspace = true
+edition.workspace = true
+license.workspace = true
+
+[dependencies]
+nexora-core = { path = "../nexora-core" }
+thiserror.workspace = true

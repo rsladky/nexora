@@ -1,0 +1,13 @@
+[project]
+name = "nexora-ml"
+version = "0.1.0"
+description = "Collecte de landmarks et entraînement du classifieur de gestes Nexora (export ONNX)"
+requires-python = ">=3.11,<3.15"
+dependencies = [
+    "numpy",
+    "opencv-python",
+    "mediapipe",
+    "scikit-learn",
+    "torch",
+    "onnx",
+]
