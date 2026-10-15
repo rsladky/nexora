@@ -9,3 +9,11 @@ nexora-core = { path = "../nexora-core" }
 nexora-vision = { path = "../nexora-vision" }
 nexora-voice = { path = "../nexora-voice" }
 nexora-input = { path = "../nexora-input" }
+
+[features]
+# Démo caméra réelle + suivi ONNX (exemple `live`). Désactivée par défaut.
+live = ["nexora-vision/camera", "nexora-vision/onnx"]
+
+[[example]]
+name = "live"
+required-features = ["live"]

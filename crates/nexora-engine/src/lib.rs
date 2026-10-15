@@ -27,6 +27,11 @@ impl<B: InputBackend> Engine<B> {
         &self.backend
     }
 
+    /// Geste actuellement validé (après debounce).
+    pub fn current_gesture(&self) -> Option<Gesture> {
+        self.tracker.current()
+    }
+
     pub fn is_paused(&self) -> bool {
         self.mapper.is_paused()
     }
