@@ -11,3 +11,7 @@ dependencies = [
     "torch",
     "onnx",
 ]
+
+[dependency-groups]
+# Conversion tflite -> ONNX (scripts/fetch_models.py). Non nécessaire à l'exécution.
+convert = ["tensorflow", "tf2onnx", "onnxruntime"]

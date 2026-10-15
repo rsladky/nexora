@@ -1,15 +1,25 @@
 //! Reconnaissance des gestes de la main.
 //!
-//! Pipeline cible : caméra (nokhwa) -> détection paume + 21 landmarks (ONNX via `ort`)
+//! Pipeline : caméra (v4l / nokhwa) -> détection paume + 21 landmarks (ONNX via `ort`)
 //! -> filtre One-Euro -> classifieur de geste (règles, puis MLP ONNX).
-//! Cette version contient les types et le classifieur à règles, testables sans caméra.
+//! Les types, le classifieur à règles et le pré/post-traitement du suivi (module `hand`)
+//! sont testables sans caméra ni modèle ; caméra et inférence sont derrière des features.
 
 #[cfg(feature = "camera")]
 pub mod camera;
+pub mod hand;
 
 use std::collections::VecDeque;
 
 use nexora_core::{Event, Gesture};
+
+/// Image RGB 8 bits, ligne par ligne (`data.len() == width * height * 3`).
+#[derive(Debug, Clone)]
+pub struct RgbFrame {
+    pub width: u32,
+    pub height: u32,
+    pub data: Vec<u8>,
+}
 
 /// Les 21 points de la main (convention MediaPipe), coordonnées normalisées 0..1.
 pub type Landmarks = [[f32; 3]; 21];
