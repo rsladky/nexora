@@ -20,13 +20,7 @@ use nokhwa_backend as backend;
 
 pub use backend::{list_cameras, Camera};
 
-/// Image RGB 8 bits, ligne par ligne (`data.len() == width * height * 3`).
-#[derive(Debug, Clone)]
-pub struct RgbFrame {
-    pub width: u32,
-    pub height: u32,
-    pub data: Vec<u8>,
-}
+pub use crate::RgbFrame;
 
 #[derive(Debug, Clone)]
 pub struct CameraInfo {

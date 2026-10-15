@@ -7,6 +7,7 @@ license.workspace = true
 [dependencies]
 nexora-core = { path = "../nexora-core" }
 thiserror.workspace = true
+ort = { version = "=2.0.0-rc.14", optional = true }
 
 [target.'cfg(target_os = "linux")'.dependencies]
 v4l = { version = "0.14", optional = true }
@@ -17,7 +18,17 @@ nokhwa = { version = "0.10", features = ["input-native"], optional = true }
 [features]
 # Capture webcam réelle (nécessite les en-têtes système V4L sous Linux). Désactivée par défaut.
 camera = ["dep:v4l", "dep:nokhwa"]
+# Inférence ONNX (détecteur de paume + landmarks) via `ort`. Désactivée par défaut.
+onnx = ["dep:ort"]
 
 [[example]]
 name = "camera_probe"
 required-features = ["camera"]
+
+[[example]]
+name = "hand_probe"
+required-features = ["camera", "onnx"]
+
+[dev-dependencies]
+# Encodage JPEG du flux de prévisualisation de l'exemple `hand_probe --serve`.
+image = { version = "0.25", default-features = false, features = ["jpeg"] }
