@@ -1,0 +1,6 @@
+faster-whisper
+sounddevice
+numpy
+pyautogui
+keyboard
+sherpa-onnx

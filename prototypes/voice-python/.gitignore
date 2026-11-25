@@ -1,0 +1,8 @@
+__pycache__/
+*.pyc
+
+# Modèles téléchargés automatiquement au premier lancement
+modeles/
+
+# Profil de voix : donnée personnelle, propre à chaque utilisateur, à ne jamais partager
+profil_voix.npz

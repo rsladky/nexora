@@ -23,6 +23,7 @@ crates/nexora-voice    reconnaissance vocale + parser FR
 crates/nexora-input    exécution des actions (souris/clavier)
 app/                   Tauri + React (à scaffolder, voir docs/CONTRIBUTING.md)
 ml/                    collecte de données + entraînement (Python)
+prototypes/voice-python  prototype vocal Python autonome (Windows), référence pour nexora-voice
 docs/                  architecture, catalogues, roadmap
 ```
 
