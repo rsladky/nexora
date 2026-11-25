@@ -12,7 +12,7 @@ Micro  ─► nexora-voice   ─ VoiceIntent ──┘
 
 - **nexora-core** : `Gesture`, `VoiceIntent`, `Action`, `Event`, `Config` (TOML), `Mapper`. Aucun I/O : 100 % testable.
 - **nexora-vision** : trait `HandTracker` (caméra+ONNX ou mock), `classify()` à règles. Feature `camera` (désactivée par défaut) : capture webcam RGB (`v4l` sous Linux, `nokhwa` ailleurs), sonde `cargo run -p nexora-vision --features camera --example camera_probe`. Module `hand` : détecteur de paume + landmarks MediaPipe (ROI rotatée, suivi sans re-détection, filtre One-Euro) ; logique pure testée en CI, inférence `ort` derrière la feature `onnx` (modèles via `ml/scripts/fetch_models.py`, dossier `models/` ou `NEXORA_MODELS_DIR`). Sonde : `cargo run --release -p nexora-vision --features camera,onnx --example hand_probe -- 1 300 --serve` (flux MJPEG annoté sur `http://127.0.0.1:8080`). À venir : MLP ONNX.
-- **nexora-voice** : trait `SpeechRecognizer`, `parse_intent()` FR. À venir : `cpal`, VAD, `whisper-rs`.
+- **nexora-voice** : trait `SpeechRecognizer`, `parse_intent()` FR. À venir : `cpal`, VAD, `whisper-rs`. Référence fonctionnelle : le prototype Python `prototypes/voice-python/` (Windows, hors CI), à porter ici.
 - **nexora-engine** : `Engine<B: InputBackend>` relie `classify` + `GestureTracker` (debounce) + `parse_intent` + `Mapper` + backend. `on_frame()` / `on_transcript()`. Démo sans matériel : `cargo run -p nexora-engine --example simulate` ; démo caméra réelle : `cargo run --release -p nexora-engine --features live --example live`.
 - **nexora-input** : trait `InputBackend`, `LogBackend`. À venir : backends `enigo` et `uinput` (features Cargo).
 
